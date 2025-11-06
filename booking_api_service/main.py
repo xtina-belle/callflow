@@ -15,23 +15,24 @@ app = FastAPI(
 )
 
 
-@app.post("/api/book-meeting", response_class=JSONResponse)
-async def book_meeting():
-    phone_number = "+97233824145"
-    call = client.calls.create(
-        from_=phone_number,
-        to="+972527500553",
-        twiml="<Response><Say>Hello from Twilio!</Say></Response>"
-    )
+@app.post("/api/handle_call", response_class=JSONResponse)
+async def handle_call():
+    # implement Booking Call Handler
     return {"message": f"{call.sid}"}
 
 
 @app.post("/api/call-orchestrator", response_class=JSONResponse)
 async def call_orchestrator():
-    phone_number = "+97233824145"
-    call = client.calls.create(
-        from_=phone_number,
-        to="+972522778791",
-        twiml="<Response><Say>Hello from Twilio!</Say></Response>"
-    )
-    return {"message": f"{call.sid}"}
+    # figure out what phone numbers are available
+    # if no phone numbers available, do nothing
+    MEETING_REQUEST_QUEUE = []
+    for meeting_request in MEETING_REQUEST_QUEUE:
+        phone_number = "+97233824145"
+        call = client.calls.create(
+            from_=phone_number,
+            to=meeting_request.person.phone_number,
+            twiml=(
+                f"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                f"<Response><Connect><Stream url=\"wss://callflow-rho.vercel.app/api/handle-call\"/></Connect></Response>"
+            )
+        )
