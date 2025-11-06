@@ -23,7 +23,7 @@ async def handle_call(websocket: WebSocket):
     await meeting_agent.handle_meeting_request_call(user_id, meeting_request_id, websocket)
 
 
-@app.post("/api/call-orchestrator", response_class=JSONResponse)
+@app.get("/api/call-orchestrator", response_class=JSONResponse)
 async def call_orchestrator():
     phone_number = "+97233824145"
     client.calls.create(
