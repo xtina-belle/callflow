@@ -1,6 +1,6 @@
 {
   "crons": [{
     "path": "/api/call-orchestrator",
-    "schedule": "* * * * *"
+    "schedule": "0 11 * * *"
   }]
 }
