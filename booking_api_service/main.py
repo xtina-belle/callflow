@@ -18,7 +18,8 @@ app = FastAPI(
 @app.websocket('/media-stream')
 async def handle_call(websocket: WebSocket):
     await websocket.accept()
-    user_id = websocket.query_params.get("user_id")
+    user_id = websocket.query_params.get("userId")
+    raise Exception(f"got this user: {user_id}")
     meeting_request_id = websocket.query_params.get("meeting_request_id")
     await meeting_agent.handle_meeting_request_call(user_id, meeting_request_id, websocket)
 
