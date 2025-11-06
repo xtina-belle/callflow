@@ -2,7 +2,9 @@ import Google from "next-auth/providers/google";
 import {NextAuthConfig} from "next-auth";
 
 export default {
-  providers: [Google],
+  providers: [
+    Google({authorization: {params: {scope: "openid email profile https://www.googleapis.com/auth/calendar.events"}}})
+  ],
   pages: {
     signIn: "/login",
   },
