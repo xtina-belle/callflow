@@ -13,7 +13,7 @@ export const getAllMeetingRequests = async (userId: string): Promise<MeetingRequ
 };
 
 export const createMeetingRequest = async (
-  data, userId: string
+  data: Omit<MeetingRequest, '_id' | 'userId' | 'createdAt' | 'updatedAt'>, userId: string
 ): Promise<MeetingRequest> => {
   const collection = db.collection<MeetingRequest>(COLLECTION)
 

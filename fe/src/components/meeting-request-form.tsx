@@ -50,7 +50,7 @@ export function MeetingRequestForm() {
 
       // Trigger refresh of the list
       window.dispatchEvent(new CustomEvent("meeting-request-created"))
-    } catch (error) {
+    } catch {
       toast.error("Failed to create meeting request")
     } finally {
       setIsSubmitting(false)

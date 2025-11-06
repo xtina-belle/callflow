@@ -40,7 +40,7 @@ export function MeetingRequestsList() {
     }
   }
 
-  const handleDelete = async (meetingRequestId) => {
+  const handleDelete = async (meetingRequestId: string) => {
     setIsLoading(true)
     const response = await fetch(`/api/meeting-requests/${meetingRequestId}`, {
       method: "DELETE",
