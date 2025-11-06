@@ -29,7 +29,7 @@ async def call_orchestrator():
 
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/media-stream" /></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/media-stream?user_id=690c8b7ddc1c8ec2a78af495&meeting_request_id=690ccd5d49a650787e3b1323" /></Connect></Response>'
     )
     call = client.calls.create(
         from_="+97233824145",
