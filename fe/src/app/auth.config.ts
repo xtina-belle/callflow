@@ -3,19 +3,26 @@ import {NextAuthConfig} from "next-auth";
 
 export default {
   providers: [
-    Google({authorization: {params: {scope: "openid email profile https://www.googleapis.com/auth/calendar.events"}}})
+    Google({
+      authorization: {
+        accessType: "offline",
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
+          prompt: "consent",
+        }
+      }
+    })
   ],
   pages: {
     signIn: "/login",
   },
   callbacks: {
-    async redirect({ baseUrl }) {
+    async redirect({baseUrl}) {
       // Redirect to dashboard after sign-in
       return baseUrl
     },
-    async authorized({ request, auth }){
+    async authorized({request, auth}) {
       const isLoggedIn = !!auth?.user;
-
       if (request.nextUrl.pathname === '/api/auth/callback/google') {
         return true;
       }
@@ -29,9 +36,25 @@ export default {
 
       return isLoggedIn;
     },
+    async jwt({token, account}) {
+      // Save refresh token to JWT token when user signs in
+      if (account) {
+        token.refreshToken = account.refresh_token;
+        token.accessToken = account.access_token;
+        token.expiresAt = account.expires_at;
+      }
+      return token;
+    },
     async session({session, token}) {
       if (session.user) {
         session.user.id = token.sub!;
+      }
+      // Add tokens to session if needed
+      if (token.refreshToken) {
+        session.refreshToken = token.refreshToken as string;
+      }
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
       }
       return session
     },
