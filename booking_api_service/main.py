@@ -19,7 +19,6 @@ app = FastAPI(
 async def handle_call(websocket: WebSocket):
     await websocket.accept()
     user_id = websocket.query_params.get("userId")
-    raise Exception(f"got this user: {user_id}")
     meeting_request_id = websocket.query_params.get("meeting_request_id")
     await meeting_agent.handle_meeting_request_call(user_id, meeting_request_id, websocket)
 
@@ -30,7 +29,7 @@ async def call_orchestrator():
 
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/media-stream?userId=690c8b7ddc1c8ec2a78af495" /></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/media-stream" /></Connect></Response>'
     )
     call = client.calls.create(
         from_="+97233824145",
