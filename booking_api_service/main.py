@@ -5,7 +5,7 @@ from fastapi import WebSocket
 from fastapi.responses import JSONResponse
 from twilio.rest import Client
 
-from booking_api_service.service import meeting_agent
+from service import meeting_agent
 
 client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
 

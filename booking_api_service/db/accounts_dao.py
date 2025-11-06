@@ -1,7 +1,7 @@
 from bson import ObjectId
 import pydantic
 
-from booking_api_service.db.db import db
+from db.db import db
 
 
 class Account(pydantic.BaseModel):

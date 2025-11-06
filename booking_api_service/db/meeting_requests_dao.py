@@ -1,7 +1,7 @@
 import pydantic
 from bson import ObjectId
 
-from booking_api_service.db.db import db
+from db.db import db
 
 
 class MeetingRequest(pydantic.BaseModel):

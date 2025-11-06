@@ -10,9 +10,9 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from openai import AsyncOpenAI
 
-from booking_api_service.db import accounts_dao
-from booking_api_service.db import meeting_requests_dao
-from booking_api_service.db import users_dao
+from db import accounts_dao
+from db import meeting_requests_dao
+from db import users_dao
 
 LOG_EVENT_TYPES = [
     "error",
