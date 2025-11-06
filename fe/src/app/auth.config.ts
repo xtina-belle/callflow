@@ -5,10 +5,10 @@ export default {
   providers: [
     Google({
       authorization: {
-        accessType: "offline",
         params: {
           scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
           prompt: "consent",
+          access_type: "offline",
         }
       }
     })
