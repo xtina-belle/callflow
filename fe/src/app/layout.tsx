@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Realtor Assistant",
-  description: "Realtor AI Assistant",
+  title: "CallFlow AI",
+  description: "CallFlow Assistant",
 };
 
 export default function RootLayout({
