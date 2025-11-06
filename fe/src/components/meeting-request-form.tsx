@@ -16,8 +16,6 @@ export function MeetingRequestForm() {
     clientName: "",
     clientPhone: "",
     clientEmail: "",
-    accountManagerName: "",
-    accountManagerEmail: "",
     preferredStart: "",
     notes: "",
   })
@@ -42,8 +40,6 @@ export function MeetingRequestForm() {
         clientName: "",
         clientPhone: "",
         clientEmail: "",
-        accountManagerName: "",
-        accountManagerEmail: "",
         preferredStart: "",
         notes: "",
       })

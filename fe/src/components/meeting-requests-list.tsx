@@ -13,8 +13,6 @@ interface MeetingRequest {
   clientName: string
   clientPhone: string
   clientEmail?: string
-  accountManagerName: string
-  accountManagerEmail: string
   preferredStart?: string
   notes?: string
   scheduledStart?: string
@@ -88,7 +86,6 @@ export function MeetingRequestsList() {
                 <div className="mb-3 flex items-start justify-between">
                   <div>
                     <h3 className="font-semibold text-foreground">{request.clientName}</h3>
-                    <p className="text-sm text-muted-foreground">Managed by {request.accountManagerName}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {request.scheduledStart ? (

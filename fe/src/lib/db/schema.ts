@@ -9,10 +9,6 @@ export interface MeetingRequest {
   clientPhone: string;
   clientEmail?: string;
 
-  // Account manager info
-  accountManagerName: string;
-  accountManagerEmail: string;
-
   // When they'd like to meet (optional)
   preferredStart?: Date;
 

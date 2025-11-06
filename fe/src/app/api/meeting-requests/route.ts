@@ -29,11 +29,7 @@ export async function POST(request: NextRequest) {
 
     const meetingRequestData = await request.json();
     const newMeetingRequest = await createMeetingRequest(
-      {
-        ...meetingRequestData,
-        accountManagerName: session.user.name,
-        accountManagerEmail: session.user.email,
-      },
+      meetingRequestData,
       session.user.id,
     );
 
