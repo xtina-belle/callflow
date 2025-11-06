@@ -39,6 +39,10 @@ export default {
     async jwt({token, account}) {
       // Save refresh token to JWT token when user signs in
       if (account) {
+        console.log('=== Account data from Google ===');
+        console.log(JSON.stringify(account, null, 2));
+        console.log('refresh_token:', account.refresh_token);
+        console.log('================================');
         token.refreshToken = account.refresh_token;
         token.accessToken = account.access_token;
         token.expiresAt = account.expires_at;
