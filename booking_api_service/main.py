@@ -24,3 +24,14 @@ async def book_meeting():
         twiml="<Response><Say>Hello from Twilio!</Say></Response>"
     )
     return {"message": f"{call.sid}"}
+
+
+@app.post("/api/call-orchestrator", response_class=JSONResponse)
+async def call_orchestrator():
+    phone_number = "+97233824145"
+    call = client.calls.create(
+        from_=phone_number,
+        to="+972522778791",
+        twiml="<Response><Say>Hello from Twilio!</Say></Response>"
+    )
+    return {"message": f"{call.sid}"}
