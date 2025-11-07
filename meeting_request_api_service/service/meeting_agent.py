@@ -157,6 +157,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                         print(f"Error processing audio data: {e}")
                 if event.type == "response.output_item.add":
                     if event.item.type == "function_call" or event.item.type == "tool_call":
+                        print("function call:", event.item)
                         if event.item.name == "end_call":
                             await phones_dao.update_phone_usage(phone_number, False)
                             return
