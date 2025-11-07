@@ -3,7 +3,6 @@ import os
 
 from fastapi import FastAPI
 from fastapi import WebSocket
-from fastapi.responses import JSONResponse
 from twilio.rest import Client
 
 from service import meeting_agent
