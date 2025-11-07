@@ -12,6 +12,7 @@ from openai import AsyncOpenAI
 
 from db import accounts_dao
 from db import meeting_requests_dao
+from db import phones_dao
 from db import users_dao
 
 LOG_EVENT_TYPES = [
@@ -58,7 +59,7 @@ TOOLS = [
 ]
 
 
-async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twilio_ws: WebSocket):
+async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone_number: str, twilio_ws: WebSocket):
     meeting_request = await meeting_requests_dao.get_meeting_request_by_id(meeting_request_id)
     user = await users_dao.get_user_by_id(meeting_request.user_id)
     calendar_service = await _get_calendar_service(meeting_request.user_id)
@@ -132,6 +133,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
                         })
             except WebSocketDisconnect:
                 print("Client disconnected.")
+                await phones_dao.update_phone_usage(phone_number, False)
                 await open_ai_connection.close()
 
         async def send():
@@ -156,6 +158,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
                 if event.type == "response.output_item.add":
                     if event.item.type == "function_call" or event.item.type == "tool_call":
                         if event.item.name == "end_call":
+                            await phones_dao.update_phone_usage(phone_number, False)
                             return
 
                         result = await book_meeting(event.item.arguments, calendar_service, user, meeting_request)
@@ -169,6 +172,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
                         await open_ai_connection.response.create()
 
         await asyncio.gather(receive(), send())
+    await phones_dao.update_phone_usage(phone_number, False)
 
 
 async def book_meeting(args, calendar_service, user, meeting_request):

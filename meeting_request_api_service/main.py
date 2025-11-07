@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from twilio.rest import Client
 
 from service import meeting_agent
+from db import phones_dao
 
 client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
 
@@ -18,10 +19,14 @@ app = FastAPI(
 
 @app.websocket('/media-stream')
 async def handle_call(websocket: WebSocket):
-    await websocket.accept()
-    _ = await websocket.receive_text()
-    initial_message = await websocket.receive_text()
-    data = json.loads(initial_message)
-    stream_sid = data["start"]["streamSid"]
-    meeting_request_id = data["start"]["customParameters"]["meetingRequestId"]
-    await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, websocket)
+    try:
+        await websocket.accept()
+        _ = await websocket.receive_text()
+        initial_message = await websocket.receive_text()
+        data = json.loads(initial_message)
+        stream_sid = data["start"]["streamSid"]
+        meeting_request_id = data["start"]["customParameters"]["meetingRequestId"]
+        phone_number = data["start"]["customParameters"]["phone_number"]
+        await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, phone_number, websocket)
+    except Exception as e:
+        phones_dao.update_phone_usage(phone_number, False)
