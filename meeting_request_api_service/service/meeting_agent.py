@@ -15,11 +15,6 @@ from db import meeting_requests_dao
 from db import phones_dao
 from db import users_dao
 
-LOG_EVENT_TYPES = [
-    "error",
-    "response.output_item.added",
-]
-
 TOOLS = [
     {
         "type": "function",
@@ -115,10 +110,6 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
 
         async def send():
             async for event in open_ai_connection:
-                if event.type in LOG_EVENT_TYPES:
-                    print(f"Received event: {event.type}", event)
-                if event.type == "session.updated":
-                    print("Session updated successfully:", event)
                 if event.type == "response.output_audio.delta" and event.delta:
                     try:
                         audio_payload = base64.b64encode(base64.b64decode(event.delta)).decode("utf-8")
