@@ -183,6 +183,7 @@ async def book_meeting(args, calendar_service, user, meeting_request):
       "end": str (ISO),
     }
     """
+    args = json.loads(args)
     created_event = calendar_service.events().insert(calendarId="primary", body={
         "summary": meeting_request.title,
         "start": {
