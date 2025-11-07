@@ -18,16 +18,23 @@ app = FastAPI(
 @app.websocket('/media-stream')
 async def handle_call(websocket: WebSocket):
     await websocket.accept()
-    meeting_request_id = websocket.query_params["meetingRequestId"]
+    initial_message = await websocket.receive_text()
+    raise Exception(initial_message)
     await meeting_agent.handle_meeting_request_call(meeting_request_id, websocket)
 
 
 @app.get("/api/call-orchestrator", response_class=JSONResponse)
 async def call_orchestrator():
-    outbound_twiml = (
-        f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?meetingRequestId=690ccd5d49a650787e3b1323" /></Connect></Response>'
-    )
+    outbound_twiml = f"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+            <Connect>
+                <Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?meetingRequestId=690ccd5d49a650787e3b1323">
+                    <Parameter name="meetingRequestId" value="690ccd5d49a650787e3b1323" />
+                </Stream>
+            </Connect>
+        </Response>
+    """
     call = client.calls.create(
         from_="+97233824145",
         to="+972527500553",
