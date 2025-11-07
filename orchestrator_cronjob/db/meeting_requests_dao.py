@@ -1,5 +1,4 @@
 import pydantic
-from bson import ObjectId
 
 from db.db import db
 
@@ -17,7 +16,7 @@ class MeetingRequest(pydantic.BaseModel):
 
 async def get_pending_meeting_requests():
     cursor = db.meeting_requests.find({"meetingData": {"$exists": False}})
-    meeting_requests = await cursor.to_list(length=None)
+    meeting_requests = await cursor.to_list()
     return [
         MeetingRequest(
             meeting_request_id=str(meeting_request.get("_id")),
@@ -30,15 +29,3 @@ async def get_pending_meeting_requests():
             meetingData=meeting_request.get("meetingData"),
         ) for meeting_request in meeting_requests
     ]
-
-
-async def update_meeting_request(meeting_request_id: str, data: dict):
-    await db.meeting_requests.update_one(
-        {"_id": ObjectId(meeting_request_id)},
-        {
-            "$push": {
-                "meetingData": data
-            },
-        },
-        upsert=True,
-    )
