@@ -171,7 +171,7 @@ async def book_meeting(args, calendar_service, user, meeting_request):
         ],
     }).execute()
 
-    await meeting_requests_dao.update_meeting_request(meeting_request.meeting_request_id, created_event[0])
+    await meeting_requests_dao.update_meeting_request(meeting_request.meeting_request_id, created_event)
 
 
 async def _get_calendar_service(user_id: str):
