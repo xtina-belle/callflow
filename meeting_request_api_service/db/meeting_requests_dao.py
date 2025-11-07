@@ -12,6 +12,7 @@ class MeetingRequest(pydantic.BaseModel):
     title: str | None
     time_slots: dict | None
     user_id: str
+    available_slots: list[dict]
 
 
 async def get_meeting_request_by_id(meeting_request_id: str):

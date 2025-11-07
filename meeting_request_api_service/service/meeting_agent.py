@@ -31,12 +31,6 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
     user = await users_dao.get_user_by_id(meeting_request.user_id)
     calendar_service = await _get_calendar_service(meeting_request.user_id)
 
-    available_slots = [
-        {"weekday": "Mon", "start": "14:00", "end": "18:00"},
-        {"weekday": "Tue", "start": "10:00", "end": "13:00"},
-        {"weekday": "Thu", "start": "15:00", "end": "18:00"},
-    ]
-
     system_prompt = f"""
     You are an AI scheduling assistant working for {user.name}.
     Your job is to CLOSE a call meeting with the client {meeting_request.client_name}.
@@ -55,7 +49,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
     - today is {datetime.datetime.now().isoformat()}, make sure the meeting slot you send to book_meeting makes sense.
 
     Available Slots for the call meeting:
-    {available_slots}
+    {meeting_request.available_slots}
     """
 
     client = AsyncOpenAI()
