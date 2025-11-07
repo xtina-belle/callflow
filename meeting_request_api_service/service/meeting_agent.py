@@ -72,16 +72,19 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
             "tool_choice": "auto",
         })
 
-        first_message = f"""
-            Hey {meeting_request.client_name}, im Bob, calling on behalf of {user.name} to schedule {meeting_request.title} call.
-            How are you?
-        """
-
         await open_ai_connection.conversation.item.create(
             item={
                 "type": "message",
                 "role": "user",
-                "content": [{"type": "input_text", "text": first_message}],
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": (
+                            f"Greet {meeting_request.client_name} with 'im Bob, calling on behalf of {user.name} to schedule {meeting_request.title} call. How are you?'"
+                        )
+                    }
+                ],
+
             }
         )
         await open_ai_connection.response.create()
