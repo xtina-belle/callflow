@@ -26,10 +26,10 @@ LOG_EVENT_TYPES = [
 ]
 
 
-async def handle_meeting_request_call(user_id: str, meeting_request_id: str, twilio_ws: WebSocket):
-    user = await users_dao.get_user_by_id(user_id)
-    calendar_service = await _get_calendar_service(user_id)
+async def handle_meeting_request_call(meeting_request_id: str, twilio_ws: WebSocket):
     meeting_request = await meeting_requests_dao.get_meeting_request_by_id(meeting_request_id)
+    user = await users_dao.get_user_by_id(meeting_request.user_id)
+    calendar_service = await _get_calendar_service(meeting_request.user_id)
 
     available_slots = [
         {"weekday": "Mon", "start": "14:00", "end": "18:00"},

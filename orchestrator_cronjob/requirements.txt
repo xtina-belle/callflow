@@ -1,2 +1,3 @@
 fastapi
 uvicorn
+twilio==9.8.5
