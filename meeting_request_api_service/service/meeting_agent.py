@@ -151,7 +151,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                         await twilio_ws.send_json(audio_delta)
                     except Exception as e:
                         print(f"Error processing audio data: {e}")
-                if event.type == "response.output_item.added":
+                if event.type == "response.function_call_arguments.done":
                     if event.item.type == "function_call":
                         print("function call:", event.item)
                         if event.item.name == "end_call":
