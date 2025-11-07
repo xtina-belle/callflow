@@ -1,3 +1,4 @@
+import audioop
 import base64
 import datetime
 import json
@@ -135,16 +136,16 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
     await phones_dao.update_phone_usage(phone_number, False)
 
 
-async def _send_audio_to_twilio(client, twilio_ws: WebSocket, stream_sid: str, message: str):
+async def _send_audio_to_twilio(client: OpenAI, twilio_ws: WebSocket, stream_sid: str, message: str):
     speech = client.audio.speech.create(
         model="gpt-4o-mini-tts",
         voice="alloy",
         input=message,
-        format="mulaw",
-        sample_rate=8000,
+        response_format="pcm",
     )
-    audio_bytes = speech.content if hasattr(speech, "content") else bytes(speech)
-    payload = base64.b64encode(audio_bytes).decode("utf-8")
+    pcm16 = speech.read()
+    mulaw = audioop.lin2ulaw(pcm16, 2)
+    payload = base64.b64encode(mulaw).decode("utf-8")
     await twilio_ws.send_json({
         "event": "media",
         "streamSid": stream_sid,
