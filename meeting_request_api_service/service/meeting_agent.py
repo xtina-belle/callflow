@@ -17,13 +17,7 @@ from db import users_dao
 
 LOG_EVENT_TYPES = [
     "error",
-    "input_audio_buffer.committed",
-    "input_audio_buffer.speech_started",
-    "input_audio_buffer.speech_stopped",
-    "rate_limits.updated",
-    "response.content.done",
-    "response.done",
-    "session.created",
+    "response.output_item.added",
 ]
 
 TOOLS = [
