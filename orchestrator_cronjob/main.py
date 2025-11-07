@@ -22,14 +22,18 @@ async def call_orchestrator():
             return
 
         await phones_dao.update_phone_usage(available_phone.number, True)
-        outbound_twiml = (
-            f'<?xml version="1.0" encoding="UTF-8"?>'
-            f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="{pending_meeting_request.meeting_request_id}" /><Parameter name="phoneNumber" value="{available_phone.number}" /></Stream></Connect></Response>'
-        )
 
-        call = client.calls.create(
-            from_=available_phone.number,
-            to=pending_meeting_request.client_phone,
-            twiml=outbound_twiml
-        )
-        print(f"Call started with SID: {call.sid}")
+        try:
+            outbound_twiml = (
+                f'<?xml version="1.0" encoding="UTF-8"?>'
+                f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="{pending_meeting_request.meeting_request_id}" /><Parameter name="phoneNumber" value="{available_phone.number}" /></Stream></Connect></Response>'
+            )
+
+            call = client.calls.create(
+                from_=available_phone.number,
+                to=pending_meeting_request.client_phone,
+                twiml=outbound_twiml
+            )
+            print(f"Call started with SID: {call.sid}")
+        except Exception as e:
+            await phones_dao.update_phone_usage(available_phone.number, False)
