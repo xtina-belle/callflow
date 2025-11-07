@@ -29,7 +29,7 @@ async def call_orchestrator():
 
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/media-stream" /></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream" /></Connect></Response>'
     )
     call = client.calls.create(
         from_="+97233824145",
@@ -43,7 +43,7 @@ async def call_orchestrator():
     #     to="+972527500553",
     #     twiml=(
     #         f'<?xml version="1.0" encoding="UTF-8"?>'
-    #         f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/api/handle_call?user_id=690c8b7ddc1c8ec2a78af495&meeting_request_id=690ccd5d49a650787e3b1323"/></Connect></Response>'
+    #         f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/api/handle_call?user_id=690c8b7ddc1c8ec2a78af495&meeting_request_id=690ccd5d49a650787e3b1323"/></Connect></Response>'
     #     )
     # )
     # # figure out what phone numbers are available
@@ -55,6 +55,6 @@ async def call_orchestrator():
     #         to=meeting_request.person.phone_number,
     #         twiml=(
     #             f'<?xml version="1.0" encoding="UTF-8"?>'
-    #             f'<Response><Connect><Stream url="wss://callflow-rho.vercel.app/api/handle-call?user_id={meeting_request.user_id}&meeting_request_id={meeting_request.meeting_request_id}"/></Connect></Response>'
+    #             f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/api/handle-call?user_id={meeting_request.user_id}&meeting_request_id={meeting_request.meeting_request_id}"/></Connect></Response>'
     #         )
     #     )
