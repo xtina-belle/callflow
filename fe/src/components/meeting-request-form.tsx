@@ -195,7 +195,7 @@ export function MeetingRequestForm() {
 
                 {availableSlots.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    No time slots added yet. Click 'Add Slot' to specify available times.
+                    No time slots added yet. Click Add Slot to specify available times.
                   </p>
                 )}
               </div>
