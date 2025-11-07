@@ -117,6 +117,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                         )
                     }
                 ],
+
             }
         )
         await open_ai_connection.response.create()
@@ -154,6 +155,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                         await twilio_ws.send_json(audio_delta)
                     except Exception as e:
                         print(f"Error processing audio data: {e}")
+                print(event)
                 if event.type == "response.output_item.add":
                     if event.item.type == "function_call" or event.item.type == "tool_call":
                         print("function call:", event.item)
@@ -164,9 +166,9 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                         result = await book_meeting(event.item.arguments, calendar_service, user, meeting_request)
                         await open_ai_connection.conversation.item.create(
                             item={
-                                "type": "function_call_output",
+                                "type": "tool_result",
                                 "call_id": event.item.call_id,
-                                "output": str(result),
+                                "output": result,
                             }
                         )
                         await open_ai_connection.response.create()
@@ -198,8 +200,7 @@ async def book_meeting(args, calendar_service, user, meeting_request):
         ],
     }).execute()
 
-    await meeting_requests_dao.update_meeting_request(meeting_request.meeting_request_id, created_event["id"])
-    return {"status": "success", "event_id": created_event["id"]}
+    await meeting_requests_dao.update_meeting_request(meeting_request.meeting_request_id, created_event[0])
 
 
 def end_call(args):
