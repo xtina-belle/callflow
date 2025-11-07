@@ -29,4 +29,4 @@ async def handle_call(websocket: WebSocket):
         phone_number = data["start"]["customParameters"]["phone_number"]
         await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, phone_number, websocket)
     except Exception as e:
-        phones_dao.update_phone_usage(phone_number, False)
+        await phones_dao.update_phone_usage(phone_number, False)
