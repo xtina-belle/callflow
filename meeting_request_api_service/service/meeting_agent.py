@@ -143,8 +143,14 @@ async def _send_audio_to_twilio(client: OpenAI, twilio_ws: WebSocket, stream_sid
         input=message,
         response_format="pcm",
     )
-    pcm16 = speech.read()
-    mulaw = audioop.lin2ulaw(pcm16, 2)
+    pcm24khz = speech.read()
+
+    # Resample from 24kHz to 8kHz (Twilio requires 8kHz)
+    pcm8khz, _ = audioop.ratecv(pcm24khz, 2, 1, 24000, 8000, None)
+
+    # Convert PCM to mulaw
+    mulaw = audioop.lin2ulaw(pcm8khz, 2)
+
     payload = base64.b64encode(mulaw).decode("utf-8")
     await twilio_ws.send_json({
         "event": "media",
