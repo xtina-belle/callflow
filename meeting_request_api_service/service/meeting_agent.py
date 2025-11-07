@@ -26,7 +26,7 @@ LOG_EVENT_TYPES = [
 ]
 
 
-async def handle_meeting_request_call(meeting_request_id: str, twilio_ws: WebSocket):
+async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twilio_ws: WebSocket):
     meeting_request = await meeting_requests_dao.get_meeting_request_by_id(meeting_request_id)
     user = await users_dao.get_user_by_id(meeting_request.user_id)
     calendar_service = await _get_calendar_service(meeting_request.user_id)
@@ -91,10 +91,7 @@ async def handle_meeting_request_call(meeting_request_id: str, twilio_ws: WebSoc
         )
         await open_ai_connection.response.create()
 
-        stream_sid = None
-
         async def receive():
-            nonlocal stream_sid
             try:
                 async for message in twilio_ws.iter_text():
                     data = json.loads(message)
@@ -103,9 +100,6 @@ async def handle_meeting_request_call(meeting_request_id: str, twilio_ws: WebSoc
                             "type": "input_audio_buffer.append",
                             "audio": data["media"]["payload"]
                         })
-                    elif data["event"] == "start":
-                        stream_sid = data["start"]["streamSid"]
-                        print(f"Incoming stream has started {stream_sid}")
             except WebSocketDisconnect:
                 print("Client disconnected.")
                 await open_ai_connection.close()

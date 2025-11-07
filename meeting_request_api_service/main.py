@@ -1,3 +1,4 @@
+import json
 import os
 
 from fastapi import FastAPI
@@ -18,11 +19,12 @@ app = FastAPI(
 @app.websocket('/media-stream')
 async def handle_call(websocket: WebSocket):
     await websocket.accept()
+    connected_message = await websocket.receive_text()
     initial_message = await websocket.receive_text()
-    raise Exception(initial_message)
+    data = json.loads(initial_message)
     stream_sid = data["start"]["streamSid"]
-    print(f"Incoming stream has started {stream_sid}")
-    await meeting_agent.handle_meeting_request_call(meeting_request_id, websocket)
+    meeting_request_id = data["start"]["customParameters"]
+    await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, websocket)
 
 
 @app.get("/api/call-orchestrator", response_class=JSONResponse)
