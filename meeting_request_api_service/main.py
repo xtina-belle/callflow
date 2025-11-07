@@ -25,7 +25,7 @@ async def handle_call(websocket: WebSocket):
         data = json.loads(initial_message)
         stream_sid = data["start"]["streamSid"]
         meeting_request_id = data["start"]["customParameters"]["meetingRequestId"]
-        phone_number = data["start"]["customParameters"]["phone_number"]
+        phone_number = data["start"]["customParameters"]["phoneNumber"]
         await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, phone_number, websocket)
     except Exception as e:
         await phones_dao.update_phone_usage(phone_number, False)

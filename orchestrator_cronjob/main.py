@@ -24,7 +24,7 @@ async def call_orchestrator():
         await phones_dao.update_phone_usage(available_phone.number, True)
         outbound_twiml = (
             f'<?xml version="1.0" encoding="UTF-8"?>'
-            f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="{pending_meeting_request.meeting_request_id}" /></Stream></Connect></Response>'
+            f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="{pending_meeting_request.meeting_request_id}" /><Parameter name="phoneNumber" value="{available_phone.number}" /></Stream></Connect></Response>'
         )
 
         call = client.calls.create(
