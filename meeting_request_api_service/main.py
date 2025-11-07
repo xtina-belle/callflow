@@ -19,37 +19,9 @@ app = FastAPI(
 @app.websocket('/media-stream')
 async def handle_call(websocket: WebSocket):
     await websocket.accept()
-    connected_message = await websocket.receive_text()
+    _ = await websocket.receive_text()
     initial_message = await websocket.receive_text()
     data = json.loads(initial_message)
     stream_sid = data["start"]["streamSid"]
     meeting_request_id = data["start"]["customParameters"]["meetingRequestId"]
     await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, websocket)
-
-
-@app.get("/api/call-orchestrator", response_class=JSONResponse)
-async def call_orchestrator():
-    outbound_twiml = (
-        f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="690d5066395d979c0b3a8b1f" /></Stream></Connect></Response>'
-    )
-
-    call = client.calls.create(
-        from_="+97233824145",
-        to="+972527500553",
-        twiml=outbound_twiml
-    )
-    print(f"Call started with SID: {call.sid}")
-
-    # # figure out what phone numbers are available
-    # # if no phone numbers available, do nothing
-    # MEETING_REQUEST_QUEUE = []
-    # for meeting_request in MEETING_REQUEST_QUEUE:
-    #     client.calls.create(
-    #         from_=phone_number,
-    #         to=meeting_request.person.phone_number,
-    #         twiml=(
-    #             f'<?xml version="1.0" encoding="UTF-8"?>'
-    #             f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/api/handle-call?user_id={meeting_request.user_id}&meeting_request_id={meeting_request.meeting_request_id}"/></Connect></Response>'
-    #         )
-    #     )

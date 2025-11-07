@@ -74,7 +74,8 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
                 }
             },
             "instructions": system_prompt,
-            "tools": TOOLS
+            "tools": TOOLS,
+            "tool_choice": "auto",
         })
 
         first_message = f"""
