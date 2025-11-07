@@ -23,7 +23,7 @@ async def handle_call(websocket: WebSocket):
     initial_message = await websocket.receive_text()
     data = json.loads(initial_message)
     stream_sid = data["start"]["streamSid"]
-    meeting_request_id = data["start"]["customParameters"]
+    meeting_request_id = data["start"]["customParameters"]["meetingRequestId"]
     await meeting_agent.handle_meeting_request_call(stream_sid, meeting_request_id, websocket)
 
 
