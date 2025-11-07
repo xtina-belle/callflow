@@ -8,7 +8,7 @@ from fastapi import WebSocket
 from fastapi.websockets import WebSocketDisconnect
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 
 from db import accounts_dao
 from db import meeting_requests_dao
@@ -85,95 +85,84 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
     {meeting_request.available_slots}
     """
 
-    client = AsyncOpenAI()
-    async with client.realtime.connect(model="gpt-realtime") as open_ai_connection:
-        await open_ai_connection.session.update(session={
-            "type": "realtime",
-            "output_modalities": ["audio"],
-            "audio": {
-                "input": {
-                    "format": {"type": "audio/pcmu"},
-                    "turn_detection": {"type": "server_vad"}
-                },
-                "output": {
-                    "format": {"type": "audio/pcmu"},
-                    "voice": "alloy"
-                }
-            },
-            "instructions": system_prompt,
-            "tools": TOOLS,
-            "tool_choice": "auto",
-        })
+    client = OpenAI()
 
-        await open_ai_connection.conversation.item.create(
-            item={
-                "type": "message",
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": (
-                            f"Greet {meeting_request.client_name} with 'im Bob, calling on behalf of {user.name} to schedule {meeting_request.title} call. How are you?'"
-                        )
-                    }
-                ],
+    first_message = f"im Bob, calling on behalf of {user.name} to schedule {meeting_request.title} call. How are you?"
+    await _send_audio_to_twilio(client, twilio_ws, stream_sid, first_message)
 
-            }
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "assistant", "content": first_message},
+    ]
+
+    async for message in twilio_ws.iter_text():
+        data = json.loads(message)
+        if data["event"] != "media":
+            continue
+
+        audio_bytes = base64.b64decode(data["media"]["payload"])
+        response = client.audio.transcriptions.create(
+            model="gpt-4o-transcribe",
+            file=audio_bytes,
         )
-        await open_ai_connection.response.create()
+        user_message = response.text
 
-        async def receive():
-            try:
-                async for message in twilio_ws.iter_text():
-                    data = json.loads(message)
-                    if data["event"] == "media":
-                        await open_ai_connection.send({
-                            "type": "input_audio_buffer.append",
-                            "audio": data["media"]["payload"]
-                        })
-            except WebSocketDisconnect:
-                print("Client disconnected.")
-                await phones_dao.update_phone_usage(phone_number, False)
-                await open_ai_connection.close()
+        messages.append({"role": "user", "content": user_message})
 
-        async def send():
-            async for event in open_ai_connection:
-                if event.type in LOG_EVENT_TYPES:
-                    print(f"Received event: {event.type}", event)
-                if event.type == "session.updated":
-                    print("Session updated successfully:", event)
-                if event.type == "response.output_audio.delta" and event.delta:
-                    try:
-                        audio_payload = base64.b64encode(base64.b64decode(event.delta)).decode("utf-8")
-                        audio_delta = {
-                            "event": "media",
-                            "streamSid": stream_sid,
-                            "media": {
-                                "payload": audio_payload
-                            }
-                        }
-                        await twilio_ws.send_json(audio_delta)
-                    except Exception as e:
-                        print(f"Error processing audio data: {e}")
-                if event.type == "response.output_item.add":
-                    if event.item.type == "function_call" or event.item.type == "tool_call":
-                        print("function call:", event.item)
-                        if event.item.name == "end_call":
-                            await phones_dao.update_phone_usage(phone_number, False)
-                            return
+        ai_message = _get_ai_message(client, messages)
 
-                        result = await book_meeting(event.item.arguments, calendar_service, user, meeting_request)
-                        await open_ai_connection.conversation.item.create(
-                            item={
-                                "type": "tool_result",
-                                "call_id": event.item.call_id,
-                                "output": result,
-                            }
-                        )
-                        await open_ai_connection.response.create()
+        if ai_message.tool_calls:
+            for tool_call in ai_message.tool_calls:
+                args = json.loads(tool_call.function.arguments or "{}")
+                if tool_call.function.name == "end_call":
+                    end_call(args)
+                    break
 
-        await asyncio.gather(receive(), send())
+                result = await book_meeting(args, calendar_service, user, meeting_request)
+                messages.append({"role": "assistant", "tool_calls": [tool_call], "content": None})
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": "book_meeting",
+                    "content": json.dumps(result),
+                })
+
+            ai_follow_message = _get_ai_message(client, messages, tool_choice="none")
+            text = ai_follow_message.choices[0].message.content
+            await _send_audio_to_twilio(client, twilio_ws, stream_sid, text)
+            messages.append({"role": "assistant", "content": text})
+        else:
+            await _send_audio_to_twilio(client, twilio_ws, stream_sid, ai_message.content)
+
     await phones_dao.update_phone_usage(phone_number, False)
+
+
+async def _send_audio_to_twilio(client, twilio_ws: WebSocket, stream_sid: str, message: str):
+    speech = client.audio.speech.create(
+        model="gpt-4o-mini-tts",
+        voice="alloy",
+        input=message,
+        format="mulaw",
+        sample_rate=8000,
+    )
+    audio_bytes = speech.content if hasattr(speech, "content") else bytes(speech)
+    payload = base64.b64encode(audio_bytes).decode("utf-8")
+    await twilio_ws.send_json({
+        "event": "media",
+        "streamSid": stream_sid,
+        "media": {"payload": payload}
+    })
+
+
+def _get_ai_message(client, messages, tool_choice="auto"):
+    chat_completion = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=messages,
+        tools=TOOLS,
+        tool_choice=tool_choice,
+        temperature=0.2,
+    )
+    return chat_completion.choices[0].message
 
 
 async def book_meeting(args, calendar_service, user, meeting_request):
