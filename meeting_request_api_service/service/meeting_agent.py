@@ -133,11 +133,11 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                     except Exception as e:
                         print(f"Error processing audio data: {e}")
                 if event.type == "response.function_call_arguments.done":
-                    result = await book_meeting(json.loads(event.item.arguments), calendar_service, user, meeting_request)
+                    result = await book_meeting(json.loads(event.arguments), calendar_service, user, meeting_request)
                     await open_ai_connection.conversation.item.create(
                         item={
                             "type": "tool_result",
-                            "call_id": event.item.call_id,
+                            "call_id": event.call_id,
                             "output": result,
                         }
                     )
