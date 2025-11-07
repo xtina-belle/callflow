@@ -1,6 +1,6 @@
 "use client"
 
-import {Calendar, Mail, Phone, Trash2} from "lucide-react"
+import {Calendar, Clock, Mail, Phone, Trash2} from "lucide-react"
 import {toast} from "sonner"
 import {useEffect, useState} from "react"
 
@@ -13,7 +13,6 @@ interface MeetingRequest {
   clientName: string
   clientPhone: string
   clientEmail?: string
-  preferredStart?: string
   notes?: string
   scheduledStart?: string
   scheduledEnd?: string
@@ -119,13 +118,6 @@ export function MeetingRequestsList() {
                     </div>
                   )}
 
-                  {request.preferredStart && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4"/>
-                      <span>Preferred: {new Date(request.preferredStart).toLocaleString()}</span>
-                    </div>
-                  )}
-
                   {request.scheduledStart && (
                     <div className="flex items-center gap-2 text-foreground">
                       <Calendar className="h-4 w-4"/>
@@ -135,8 +127,20 @@ export function MeetingRequestsList() {
                     </div>
                   )}
 
-                  {request.notes && (
-                    <div className="mt-2 rounded bg-muted p-2 text-muted-foreground">{request.notes}</div>
+                  {request.available_slots && request.available_slots.length > 0 && (
+                    <div className="mt-2">
+                      <div className="mb-1 flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-medium">Available Time Slots:</span>
+                      </div>
+                      <div className="ml-6 flex flex-wrap gap-2">
+                        {request.available_slots.map((slot, index) => (
+                          <Badge key={index} variant="outline" className="font-normal">
+                            {slot.weekday} {slot.start}-{slot.end}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

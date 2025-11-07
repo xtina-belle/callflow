@@ -1,5 +1,11 @@
 import {ObjectId} from 'mongodb';
 
+interface TimeSlot {
+  weekday: string
+  start: string
+  end: string
+}
+
 export interface MeetingRequest {
   _id: ObjectId;
   userId: ObjectId;
@@ -10,7 +16,7 @@ export interface MeetingRequest {
   clientEmail?: string;
 
   // When they'd like to meet (optional)
-  preferredStart?: Date;
+  available_slots?: TimeSlot[]
 
   // Free notes
   notes?: string;
