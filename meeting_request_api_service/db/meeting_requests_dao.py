@@ -10,7 +10,6 @@ class MeetingRequest(pydantic.BaseModel):
     client_phone: str
     client_email: str
     title: str | None
-    time_slots: dict | None
     user_id: str
     available_slots: list[dict]
 
@@ -24,7 +23,7 @@ async def get_meeting_request_by_id(meeting_request_id: str):
         client_email=data.get("clientEmail"),
         title=data.get("title"),
         user_id=str(data.get("userId")),
-        time_slots=data.get("timeSlots"),
+        available_slots=data.get("available_slots"),
     )
 
 async def update_meeting_request(meeting_request_id: str, data: dict):
