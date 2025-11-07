@@ -25,6 +25,38 @@ LOG_EVENT_TYPES = [
     "session.created",
 ]
 
+TOOLS = [
+    {
+        "type": "function",
+        "name": "book_meeting",
+        "description": "Book the meeting using the selected slot",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "start": {"type": "string", "description": "ISO dateTime"},
+                "end": {"type": "string", "description": "ISO dateTime"},
+            },
+            "required": ["start", "end"]
+        },
+    },
+    {
+        "type": "function",
+        "name": "end_call",
+        "description": "End the call when the conversation is complete (after booking or if no suitable slot found).",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "enum": ["meeting_booked", "no_suitable_slot", "client_unavailable"],
+                    "description": "The reason for ending the call"
+                }
+            },
+            "required": ["reason"]
+        },
+    }
+]
+
 
 async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twilio_ws: WebSocket):
     meeting_request = await meeting_requests_dao.get_meeting_request_by_id(meeting_request_id)
@@ -122,14 +154,14 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, twili
                     except Exception as e:
                         print(f"Error processing audio data: {e}")
                 if event.type == "response.output_item.add":
-                    if event.item.type == "function_call":
+                    if event.item.type == "function_call" or event.item.type == "tool_call":
                         if event.item.name == "end_call":
                             return
 
                         result = await book_meeting(event.item.arguments, calendar_service, user, meeting_request)
                         await open_ai_connection.conversation.item.create(
                             item={
-                                "type": "function_call_output",
+                                "type": "tool_result",
                                 "call_id": event.item.call_id,
                                 "output": result,
                             }
@@ -173,42 +205,6 @@ def end_call(args):
     }
     """
     return {"status": "call_ended", "reason": args.get("reason", "completed")}
-
-
-TOOLS = [
-    {
-        "type": "function",
-        "name": "book_meeting",
-        "description": "Finalize the meeting using the selected slot and the manager's profile.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "client_email": {"type": "string", "format": "email"},
-                "title": {"type": "string"},
-                "start": {"type": "string", "description": "ISO dateTime"},
-                "end": {"type": "string", "description": "ISO dateTime"},
-                "notes": {"type": "string"},
-            },
-            "required": ["client_email", "start", "end"]
-        },
-    },
-    {
-        "type": "function",
-        "name": "end_call",
-        "description": "End the call when the conversation is complete (after booking or if no suitable slot found).",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string",
-                    "enum": ["meeting_booked", "no_suitable_slot", "client_unavailable"],
-                    "description": "The reason for ending the call"
-                }
-            },
-            "required": ["reason"]
-        },
-    }
-]
 
 
 async def _get_calendar_service(user_id: str):

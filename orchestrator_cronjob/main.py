@@ -16,7 +16,7 @@ app = FastAPI(
 async def call_orchestrator():
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="690d5066395d979c0b3a8b1f" /></Stream></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream"><Parameter name="meetingRequestId" value="690d5617ffa8d909757f68a6" /></Stream></Connect></Response>'
     )
 
     call = client.calls.create(
