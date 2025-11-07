@@ -162,15 +162,16 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                             await phones_dao.update_phone_usage(phone_number, False)
                             return
 
-                        result = await book_meeting(event.item.arguments, calendar_service, user, meeting_request)
-                        await open_ai_connection.conversation.item.create(
-                            item={
-                                "type": "tool_result",
-                                "call_id": event.item.call_id,
-                                "output": result,
-                            }
-                        )
-                        await open_ai_connection.response.create()
+                        if event.item.name == "book_meeting":
+                            result = await book_meeting(json.loads(event.item.arguments), calendar_service, user, meeting_request)
+                            await open_ai_connection.conversation.item.create(
+                                item={
+                                    "type": "tool_result",
+                                    "call_id": event.item.call_id,
+                                    "output": result,
+                                }
+                            )
+                            await open_ai_connection.response.create()
 
         await asyncio.gather(receive(), send())
     await phones_dao.update_phone_usage(phone_number, False)
@@ -183,7 +184,6 @@ async def book_meeting(args, calendar_service, user, meeting_request):
       "end": str (ISO),
     }
     """
-    args = json.loads(args)
     created_event = calendar_service.events().insert(calendarId="primary", body={
         "summary": meeting_request.title,
         "start": {
