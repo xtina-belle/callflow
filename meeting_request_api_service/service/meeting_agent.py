@@ -34,22 +34,6 @@ TOOLS = [
             "required": ["start", "end"]
         },
     },
-    {
-        "type": "function",
-        "name": "end_call",
-        "description": "End the call when the conversation is complete (after booking or if no suitable slot found).",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string",
-                    "enum": ["meeting_booked", "no_suitable_slot", "client_unavailable"],
-                    "description": "The reason for ending the call"
-                }
-            },
-            "required": ["reason"]
-        },
-    }
 ]
 
 
@@ -66,13 +50,10 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
     1. propose 2-3 options for the meeting (in one of the available slots) for a slot of 30 minutes
     2. When the client pick one, call book_meeting tool.
     3. finish with a sentence summarizing the appointed meeting.
-    4. Call end_call tool with appropriate reason to end the conversation if needed.
 
     Rules:
     - Keep messages short, decisive, and polite.
-    - If the client suggests a different time slot, check if its within one of the available slots - if so lets go with it, and if not, say that you will check with {user.name} and get back to him, then call end_call with reason "no_suitable_slot".
-    - After successfully booking a meeting, call end_call with reason "meeting_booked".
-    - If client wants to end call, call end_call with reason "client_unavailable".
+    - If the client suggests a different time slot, check if its within one of the available slots - if so lets go with it, and if not, say that you will check with {user.name} and get back to him.
     - today is {datetime.datetime.now().isoformat()}, make sure the meeting slot you send to book_meeting makes sense.
     - Speak only in english.
     - make sure to call book_meeting tool with start and end arguments only, both in ISO dateTime.
@@ -152,27 +133,16 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                     except Exception as e:
                         print(f"Error processing audio data: {e}")
                 if event.type == "response.function_call_arguments.done":
-                    if event.item.type == "function_call":
-                        print("function call:", event.item)
-                        if event.item.name == "end_call":
-                            await phones_dao.update_phone_usage(phone_number, False)
-                            return
-
-                        if event.item.name == "book_meeting":
-                            await phones_dao.update_phone_usage(phone_number, False, data=event.item.arguments)
-                            try:
-                                result = await book_meeting(json.loads(event.item.arguments), calendar_service, user, meeting_request)
-                                await open_ai_connection.conversation.item.create(
-                                    item={
-                                        "type": "tool_result",
-                                        "call_id": event.item.call_id,
-                                        "output": result,
-                                    }
-                                )
-                                await open_ai_connection.response.create()
-                            except Exception as e:
-                                print(f"Error processing audio data: {e} {event.item.arguments}")
-                                raise Exception(f"{event.item.arguments}")
+                    result = await book_meeting(json.loads(event.item.arguments), calendar_service, user, meeting_request)
+                    await open_ai_connection.conversation.item.create(
+                        item={
+                            "type": "tool_result",
+                            "call_id": event.item.call_id,
+                            "output": result,
+                        }
+                    )
+                    await open_ai_connection.response.create()
+                    await phones_dao.update_phone_usage(phone_number, False)
 
         await asyncio.gather(receive(), send())
     await phones_dao.update_phone_usage(phone_number, False)
@@ -202,16 +172,6 @@ async def book_meeting(args, calendar_service, user, meeting_request):
     }).execute()
 
     await meeting_requests_dao.update_meeting_request(meeting_request.meeting_request_id, created_event[0])
-
-
-def end_call(args):
-    """
-    Signal that the call should end.
-    Input: {
-      "reason": str  # "meeting_booked" or "no_suitable_slot" or "client_unavailable"
-    }
-    """
-    return {"status": "call_ended", "reason": args.get("reason", "completed")}
 
 
 async def _get_calendar_service(user_id: str):
