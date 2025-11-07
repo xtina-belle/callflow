@@ -99,12 +99,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
         if data["event"] != "media":
             continue
 
-        audio_bytes = base64.b64decode(data["media"]["payload"])
-        response = client.audio.transcriptions.create(
-            model="gpt-4o-transcribe",
-            file=audio_bytes,
-        )
-        user_message = response.text
+        user_message = _get_text_from_twilio_audio()
 
         messages.append({"role": "user", "content": user_message})
 
@@ -137,26 +132,82 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
 
 
 async def _send_audio_to_twilio(client: OpenAI, twilio_ws: WebSocket, stream_sid: str, message: str):
-    speech = client.audio.speech.create(
-        model="gpt-4o-mini-tts",
-        voice="alloy",
+    response = client.audio.speech.create(
+        model="tts-1",
+        voice="alloy",  # Options: alloy, echo, fable, onyx, nova, shimmer
         input=message,
-        response_format="pcm",
+        response_format="pcm",  # Raw PCM audio for Twilio
     )
-    pcm24khz = speech.read()
+    audio_data = response.content
 
-    # Resample from 24kHz to 8kHz (Twilio requires 8kHz)
-    pcm8khz, _ = audioop.ratecv(pcm24khz, 2, 1, 24000, 8000, None)
+    # Convert to mulaw 8kHz mono (Twilio's required format)
+    # OpenAI returns PCM at 24kHz, need to convert to 8kHz mulaw
+    # Resample from 24kHz to 8kHz
+    resampled_audio = audioop.ratecv(
+        audio_data,
+        2,  # 2 bytes per sample (16-bit)
+        1,  # mono
+        24000,  # from 24kHz
+        8000,  # to 8kHz
+        None
+    )[0]
 
-    # Convert PCM to mulaw
-    mulaw = audioop.lin2ulaw(pcm8khz, 2)
+    # Convert to mulaw format
+    mulaw_audio = audioop.lin2ulaw(resampled_audio, 2)
 
-    payload = base64.b64encode(mulaw).decode("utf-8")
-    await twilio_ws.send_json({
-        "event": "media",
-        "streamSid": stream_sid,
-        "media": {"payload": payload}
-    })
+    # Encode to base64 for Twilio
+    base64_audio = base64.b64encode(mulaw_audio).decode('utf-8')
+
+    # Split into chunks (Twilio recommends ~20ms chunks = ~160 bytes for 8kHz mulaw)
+    chunk_size = 160
+    for i in range(0, len(mulaw_audio), chunk_size):
+        chunk = mulaw_audio[i:i + chunk_size]
+        chunk_base64 = base64.b64encode(chunk).decode('utf-8')
+
+        media_message = {
+            "event": "media",
+            "streamSid": stream_sid,
+            "media": {
+                "payload": chunk_base64
+            }
+        }
+        await twilio_ws.send_text(json.dumps(media_message))
+
+
+async def _get_text_from_twilio_audio(audio_buffer: bytes):
+    """
+    Convert Twilio audio (mulaw 8kHz) to text using OpenAI Whisper.
+
+    Note: This function should be called with accumulated audio data.
+    You'll need to buffer the incoming audio chunks before transcription.
+    """
+    # Convert mulaw to linear PCM
+    pcm_audio = audioop.ulaw2lin(audio_buffer, 2)
+
+    # Convert to WAV format for Whisper
+    # Whisper expects audio files, so we need to create a temporary file-like object
+    import io
+    import wave
+
+    wav_buffer = io.BytesIO()
+    with wave.open(wav_buffer, 'wb') as wav_file:
+        wav_file.setnchannels(1)  # mono
+        wav_file.setsampwidth(2)  # 2 bytes per sample (16-bit)
+        wav_file.setframerate(8000)  # 8kHz
+        wav_file.writeframes(pcm_audio)
+
+    wav_buffer.seek(0)
+    wav_buffer.name = "audio.wav"  # Whisper API expects a filename
+
+    # Transcribe using OpenAI Whisper
+    client = OpenAI()
+    transcription = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=wav_buffer,
+        language="en"  # Optional: specify language for better accuracy
+    )
+
+    return transcription.text
 
 
 def _get_ai_message(client, messages, tool_choice="auto"):
