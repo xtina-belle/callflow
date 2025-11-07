@@ -64,7 +64,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
 
     Steps:
     1. propose 2-3 options for the meeting (in one of the available slots) for a slot of 30 minutes
-    2. When the client pick one, call book_meeting tool with the slot.
+    2. When the client pick one, call book_meeting tool.
     3. finish with a sentence summarizing the appointed meeting.
     4. Call end_call tool with appropriate reason to end the conversation if needed.
 
@@ -74,6 +74,8 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
     - After successfully booking a meeting, call end_call with reason "meeting_booked".
     - If client wants to end call, call end_call with reason "client_unavailable".
     - today is {datetime.datetime.now().isoformat()}, make sure the meeting slot you send to book_meeting makes sense.
+    - Speak only in english.
+    - make sure to call book_meeting tool with start and end arguments only, both in ISO dateTime.
 
     Available Slots for the call meeting:
     {meeting_request.available_slots}
