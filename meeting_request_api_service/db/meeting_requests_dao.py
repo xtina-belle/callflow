@@ -22,7 +22,7 @@ async def get_meeting_request_by_id(meeting_request_id: str):
         client_phone=data.get("clientPhone"),
         client_email=data.get("clientEmail"),
         title=data.get("title"),
-        user_id=data.get("userId"),
+        user_id=str(data.get("userId")),
         time_slots=data.get("timeSlots"),
     )
 
