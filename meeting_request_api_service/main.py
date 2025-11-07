@@ -27,7 +27,7 @@ async def handle_call(websocket: WebSocket):
 async def call_orchestrator():
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?userId=690c8b7ddc1c8ec2a78af495&meeting_request_id=690ccd5d49a650787e3b1323" /></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?userId=690c8b7ddc1c8ec2a78af495&meetingRequestId=690ccd5d49a650787e3b1323" /></Connect></Response>'
     )
     call = client.calls.create(
         from_="+97233824145",

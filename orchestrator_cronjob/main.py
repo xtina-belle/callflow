@@ -14,11 +14,9 @@ app = FastAPI(
 
 @app.get("/api/call-orchestrator", response_class=JSONResponse)
 async def call_orchestrator():
-    phone_number = "+97233824145"
-
     outbound_twiml = (
         f'<?xml version="1.0" encoding="UTF-8"?>'
-        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?userId=690c8b7ddc1c8ec2a78af495" /></Connect></Response>'
+        f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/media-stream?userId=690c8b7ddc1c8ec2a78af495&meetingRequestId=690ccd5d49a650787e3b1323" /></Connect></Response>'
     )
     call = client.calls.create(
         from_="+97233824145",
@@ -27,14 +25,6 @@ async def call_orchestrator():
     )
     print(f"Call started with SID: {call.sid}")
 
-    # client.calls.create(
-    #     from_=phone_number,
-    #     to="+972527500553",
-    #     twiml=(
-    #         f'<?xml version="1.0" encoding="UTF-8"?>'
-    #         f'<Response><Connect><Stream url="wss://bountiful-cat-production.up.railway.app/api/handle_call?user_id=690c8b7ddc1c8ec2a78af495&meeting_request_id=690ccd5d49a650787e3b1323"/></Connect></Response>'
-    #     )
-    # )
     # # figure out what phone numbers are available
     # # if no phone numbers available, do nothing
     # MEETING_REQUEST_QUEUE = []
