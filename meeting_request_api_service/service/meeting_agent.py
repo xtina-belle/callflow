@@ -1,14 +1,12 @@
-import asyncio
 import base64
 import datetime
 import json
 import os
 
 from fastapi import WebSocket
-from fastapi.websockets import WebSocketDisconnect
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 
 from db import accounts_dao
 from db import meeting_requests_dao
