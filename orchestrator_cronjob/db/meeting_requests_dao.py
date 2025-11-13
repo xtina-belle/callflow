@@ -14,7 +14,7 @@ class MeetingRequest(pydantic.BaseModel):
     meetingData: dict | None
 
 
-async def get_pending_meeting_requests():
+def get_pending_meeting_requests():
     cursor = db.meeting_requests.find({"meetingData": {"$exists": False}})
     return [
         MeetingRequest(
