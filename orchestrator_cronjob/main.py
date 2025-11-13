@@ -15,13 +15,13 @@ app = FastAPI(
 )
 
 @app.get("/api/call-orchestrator", response_class=JSONResponse)
-async def call_orchestrator():
-    for pending_meeting_request in await meeting_requests_dao.get_pending_meeting_requests():
-        available_phone = await phones_dao.get_available_phone()
+def call_orchestrator():
+    for pending_meeting_request in meeting_requests_dao.get_pending_meeting_requests():
+        available_phone = phones_dao.get_available_phone()
         if not available_phone:
             return
 
-        await phones_dao.update_phone_usage(available_phone.number, True)
+        phones_dao.update_phone_usage(available_phone.number, True)
 
         try:
             outbound_twiml = (
@@ -36,4 +36,4 @@ async def call_orchestrator():
             )
             print(f"Call started with SID: {call.sid}")
         except Exception as e:
-            await phones_dao.update_phone_usage(available_phone.number, False)
+            phones_dao.update_phone_usage(available_phone.number, False)

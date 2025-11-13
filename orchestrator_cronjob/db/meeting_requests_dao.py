@@ -16,7 +16,6 @@ class MeetingRequest(pydantic.BaseModel):
 
 async def get_pending_meeting_requests():
     cursor = db.meeting_requests.find({"meetingData": {"$exists": False}})
-    meeting_requests = await cursor.to_list()
     return [
         MeetingRequest(
             meeting_request_id=str(meeting_request.get("_id")),
@@ -27,5 +26,5 @@ async def get_pending_meeting_requests():
             user_id=str(meeting_request.get("userId")),
             available_slots=meeting_request.get("available_slots"),
             meetingData=meeting_request.get("meetingData"),
-        ) for meeting_request in meeting_requests
+        ) for meeting_request in cursor.to_list()
     ]
