@@ -85,7 +85,7 @@ async def handle_meeting_request_call(stream_sid, meeting_request_id: str, phone
                     {
                         "type": "input_text",
                         "text": (
-                            f"Greet {meeting_request.client_name} with 'im Bob, calling on behalf of {user.name} to schedule {meeting_request.title} call. How are you?'"
+                            f"Greet {meeting_request.client_name} with 'im Bob, calling on behalf of {user.name} to schedule a call. How are you?'"
                         )
                     }
                 ],
@@ -147,7 +147,7 @@ async def book_meeting(args, calendar_service, user, meeting_request):
     }
     """
     created_event = calendar_service.events().insert(calendarId="primary", body={
-        "summary": meeting_request.title,
+        "summary": f"{meeting_request.client_name} / {user.name}",
         "start": {
             "dateTime": args["start"],
             "timeZone": "Asia/Jerusalem",
