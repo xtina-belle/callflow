@@ -1,3 +1,4 @@
+import logging
 import os
 
 from twilio.rest import Client
@@ -7,11 +8,16 @@ from db import phones_dao
 
 client = Client(os.getenv("TWILIO_ACCOUNT_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
 
+logger = logging.getLogger(__name__)
+
 
 def call_orchestrator():
+    logger.info("Calling orchestrator")
     for pending_meeting_request in meeting_requests_dao.get_pending_meeting_requests():
+        logger.info(f"Pending meeting request: {pending_meeting_request}")
         available_phone = phones_dao.get_available_phone()
         if not available_phone:
+            logger.info(f"No available phone for {pending_meeting_request}")
             return
 
         phones_dao.update_phone_usage(available_phone.number, True)
@@ -27,8 +33,9 @@ def call_orchestrator():
                 to=pending_meeting_request.client_phone,
                 twiml=outbound_twiml
             )
-            print(f"Call started with SID: {call.sid}")
-        except Exception as e:
+            logger.info(f"Call started with SID: {call.sid}")
+        except Exception as error:
+            logger.error(f"Call failed with: {error}")
             phones_dao.update_phone_usage(available_phone.number, False)
 
 
