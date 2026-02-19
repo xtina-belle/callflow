@@ -20,7 +20,7 @@ interface TimeSlot {
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-export function MeetingRequestForm() {
+export function MeetingRequestForm({onSubmit}: { onSubmit: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     clientName: "",
@@ -72,8 +72,7 @@ export function MeetingRequestForm() {
       })
       setAvailableSlots([])
 
-      // Trigger refresh of the list
-      window.dispatchEvent(new CustomEvent("meeting-request-created"))
+      onSubmit()
     } catch {
       toast.error("Failed to create meeting request")
     } finally {

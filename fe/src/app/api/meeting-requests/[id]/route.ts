@@ -5,7 +5,7 @@ import {deleteMeetingRequest} from "@/lib/db/meetingRequestsDao";
 
 export async function DELETE(
   request: NextRequest,
-  {params}: { params: { id: string } }
+  {params}: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -13,7 +13,8 @@ export async function DELETE(
       return new Response("Unauthorized", {status: 401});
     }
 
-    const deleted = await deleteMeetingRequest(params.id, session.user.id);
+    const {id} = await params;
+    const deleted = await deleteMeetingRequest(id, session.user.id);
     if (!deleted) {
       return new Response("Could not delete meeting request", {status: 401});
     }

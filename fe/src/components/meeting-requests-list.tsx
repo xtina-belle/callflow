@@ -1,61 +1,34 @@
 "use client"
 
 import {Calendar, Clock, Mail, Phone, Trash2} from "lucide-react"
-import {toast} from "sonner"
-import {useEffect, useState} from "react"
 
 import {Badge} from "@/components/ui/badge"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
 
-interface MeetingRequest {
+interface MeetingData {
+  status: string
+}
+
+export interface MeetingRequest {
   _id: string
   clientName: string
   clientPhone: string
   clientEmail?: string
   notes?: string
-  scheduledStart?: string
-  scheduledEnd?: string
   createdAt: string
+  meetingData: MeetingData[]
+  scheduledStart?: string
+  available_slots?: { weekday: string; start: string; end: string }[]
 }
 
-export function MeetingRequestsList() {
-  const [requests, setRequests] = useState<MeetingRequest[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+interface MeetingRequestsListProps {
+  requests: MeetingRequest[]
+  isLoading: boolean
+  handleDelete: (id: string) => void
+}
 
-  const fetchRequests = async () => {
-    try {
-      const response = await fetch("/api/meeting-requests")
-      if (response.ok) {
-        const data = await response.json()
-        setRequests(data.meetingRequests)
-      }
-    } catch (error) {
-      console.error("Failed to fetch meeting requests:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleDelete = async (meetingRequestId: string) => {
-    setIsLoading(true)
-    const response = await fetch(`/api/meeting-requests/${meetingRequestId}`, {
-      method: "DELETE",
-    })
-
-    if (response.ok) {
-      toast.success("Meeting request deleted successfully")
-      await fetchRequests();
-    } else {
-      toast.error("Failed to delete meeting request")
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchRequests()
-  }, [])
-
+export function MeetingRequestsList({requests, isLoading, handleDelete}: MeetingRequestsListProps) {
   if (isLoading) {
     return (
       <Card>
@@ -87,7 +60,7 @@ export function MeetingRequestsList() {
                     <h3 className="font-semibold text-foreground">{request.clientName}</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    {request.scheduledStart ? (
+                    {request.meetingData ? (
                       <Badge variant="default">Scheduled</Badge>
                     ) : (
                       <Badge variant="secondary">Pending</Badge>
@@ -130,7 +103,7 @@ export function MeetingRequestsList() {
                   {request.available_slots && request.available_slots.length > 0 && (
                     <div className="mt-2">
                       <div className="mb-1 flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-4 w-4"/>
                         <span className="font-medium">Available Time Slots:</span>
                       </div>
                       <div className="ml-6 flex flex-wrap gap-2">
